@@ -1,0 +1,13 @@
+{% if performance %}
+<section class="evaluation-strip reveal">
+  <div class="metric-card glass"><span>Algorithm</span><strong>{{ performance.algorithm }}</strong><small>{{ performance.samples }} samples</small></div>
+  <div class="metric-card glass"><span>Precision</span><strong>{{ performance.precision|floatformat:3 }}</strong><small>False-positive control</small></div>
+  <div class="metric-card glass"><span>Recall</span><strong>{{ performance.recall|floatformat:3 }}</strong><small>False-negative control</small></div>
+  <div class="metric-card glass"><span>F1 score</span><strong>{{ performance.f1_score|floatformat:3 }}</strong><small>Balanced performance</small></div>
+  <div class="metric-card glass"><span>ROC AUC</span><strong>{{ performance.roc_auc|floatformat:3 }}</strong><small>Ranking quality</small></div>
+</section>
+{% else %}
+<section class="evaluation-strip reveal">
+  <div class="empty-panel glass"><p>No supervised model metrics yet. Run detection on labeled synthetic transactions to populate precision, recall, F1, and ROC AUC.</p></div>
+</section>
+{% endif %}

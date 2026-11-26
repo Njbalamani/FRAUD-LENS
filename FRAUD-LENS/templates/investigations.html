@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · FraudLens{% endblock %}
+{% block content %}
+<section class="page-heading reveal">
+  <div>
+    <span class="eyebrow">Analyst workspace</span>
+    <h1>{{ title }}</h1>
+    <p class="muted">{{ count }} cases in the review queue.</p>
+  </div>
+  <a class="primary-button" href="/api/investigations/cases/">Open cases API</a>
+</section>
+{{ suggested_finding_ids|json_script:"case-finding-ids" }}
+<section class="panel glass quick-action reveal">
+  <div>
+    <span class="eyebrow">Suggested triage</span>
+    <h2>Top {{ suggested_findings|length }} high-severity signals</h2>
+    <p class="muted">Group the strongest findings into one case for analyst review.</p>
+  </div>
+  <div class="inline-action">
+    {% if user.is_admin_role or user.is_analyst_role %}
+      <button id="create-case-from-findings" class="primary-button" type="button">Create case from findings</button>
+      <span id="case-create-status" class="action-status" aria-live="polite"></span>
+    {% else %}
+      <span class="muted">Read-only access</span>
+    {% endif %}
+  </div>
+</section>
+<section class="case-grid reveal">
+  {% for case in cases %}
+    <article class="case-card glass">
+      <div class="case-top"><span class="case-id">{{ case.case_id }}</span><span class="priority priority-{{ case.priority }}">{{ case.priority }}</span></div>
+      <h2>{{ case.title }}</h2>
+      <p class="muted">{{ case.description|truncatechars:160 }}</p>
+      <div class="case-meta">
+        <span class="status-pill status-{{ case.status }}">{{ case.status }}</span>
+        <span>{{ case.findings.count }} findings</span>
+        <span>{{ case.assigned_to.username|default:"Unassigned" }}</span>
+      </div>
+    </article>
+  {% empty %}
+    <article class="empty-panel glass"><p>No investigation cases yet. Use the suggested triage action above or create one through the API or admin.</p></article>
+  {% endfor %}
+</section>
+{% endblock %}

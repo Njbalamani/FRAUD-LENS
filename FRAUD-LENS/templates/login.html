@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Sign in · FraudLens{% endblock %}
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-card glass reveal">
+    <span class="eyebrow">Secure access</span>
+    <h1>Welcome to FraudLens</h1>
+    <p class="muted">Sign in to review synthetic fraud signals, transaction networks, and investigation cases.</p>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="primary-button" type="submit">Sign in</button>
+    </form>
+    <div class="auth-note">
+      <strong>Demo access</strong>
+      <span>Run <code>python manage.py seed_demo</code> to create synthetic users and data.</span>
+    </div>
+  </div>
+  <aside class="auth-aside glass reveal">
+    <span class="eyebrow">Built for analysts</span>
+    <h2>See the pattern behind every transaction.</h2>
+    <p>Combine rule signals, machine learning, behavioral baselines, and connected-network context in one focused workspace.</p>
+    <div class="auth-metrics">
+      <div><strong>0-100</strong><span>Explainable risk score</span></div>
+      <div><strong>3D</strong><span>Transaction network</span></div>
+      <div><strong>PDF</strong><span>Review-ready reports</span></div>
+    </div>
+  </aside>
+</section>
+{% endblock %}

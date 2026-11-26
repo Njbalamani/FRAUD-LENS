@@ -1,0 +1,88 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: fraudlens
+      POSTGRES_USER: fraudlens
+      POSTGRES_PASSWORD: fraudlens
+    volumes:
+      - fraudlens_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fraudlens"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn fraudlens.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120"
+    environment:
+      FRAUDLENS_DEBUG: "false"
+      FRAUDLENS_ALLOWED_HOSTS: "localhost,127.0.0.1,web"
+      FRAUDLENS_DB_ENGINE: "django.db.backends.postgresql"
+      FRAUDLENS_DB_NAME: "fraudlens"
+      FRAUDLENS_DB_USER: "fraudlens"
+      FRAUDLENS_DB_PASSWORD: "fraudlens"
+      FRAUDLENS_DB_HOST: "db"
+      FRAUDLENS_DB_PORT: "5432"
+      FRAUDLENS_CELERY_BROKER_URL: "redis://redis:6379/0"
+      FRAUDLENS_CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+    volumes:
+      - fraudlens_static:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery:
+    build: .
+    command: celery -A fraudlens worker --loglevel=info
+    environment:
+      FRAUDLENS_DEBUG: "false"
+      FRAUDLENS_DB_ENGINE: "django.db.backends.postgresql"
+      FRAUDLENS_DB_NAME: "fraudlens"
+      FRAUDLENS_DB_USER: "fraudlens"
+      FRAUDLENS_DB_PASSWORD: "fraudlens"
+      FRAUDLENS_DB_HOST: "db"
+      FRAUDLENS_DB_PORT: "5432"
+      FRAUDLENS_CELERY_BROKER_URL: "redis://redis:6379/0"
+      FRAUDLENS_CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    build: .
+    command: celery -A fraudlens beat --loglevel=info
+    environment:
+      FRAUDLENS_DEBUG: "false"
+      FRAUDLENS_DB_ENGINE: "django.db.backends.postgresql"
+      FRAUDLENS_DB_NAME: "fraudlens"
+      FRAUDLENS_DB_USER: "fraudlens"
+      FRAUDLENS_DB_PASSWORD: "fraudlens"
+      FRAUDLENS_DB_HOST: "db"
+      FRAUDLENS_DB_PORT: "5432"
+      FRAUDLENS_CELERY_BROKER_URL: "redis://redis:6379/0"
+      FRAUDLENS_CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  fraudlens_db:
+  fraudlens_static:

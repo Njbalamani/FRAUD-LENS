@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · FraudLens{% endblock %}
+{% block content %}
+<section class="page-heading reveal">
+  <div>
+    <span class="eyebrow">Command center</span>
+    <h1>{{ title }}</h1>
+    <p class="muted">Synthetic portfolio snapshot with advisory signals and review queues.</p>
+  </div>
+  <div class="mode-badge">{{ fraudlens_mode|title }} mode · threshold {{ risk_threshold }}</div>
+</section>
+
+<section class="metric-grid reveal">
+  <article class="metric-card glass">
+    <span>Transactions</span><strong>{{ transaction_count }}</strong><small>Masked ledger records</small>
+  </article>
+  <article class="metric-card glass accent-gold">
+    <span>Findings</span><strong>{{ finding_count }}</strong><small>Rule and model signals</small>
+  </article>
+  <article class="metric-card glass accent-silver">
+    <span>High risk</span><strong>{{ high_risk_count }}</strong><small>Score at or above threshold</small>
+  </article>
+  <article class="metric-card glass">
+    <span>Open cases</span><strong>{{ open_case_count }}</strong><small>Awaiting analyst review</small>
+  </article>
+</section>
+
+<section class="dashboard-grid reveal">
+  <article class="panel glass">
+    <div class="panel-head"><h2>Risk distribution</h2><span>Live portfolio</span></div>
+    {{ risk_distribution|json_script:"risk-distribution-data" }}
+    <canvas id="riskChart" height="220"></canvas>
+  </article>
+  <article class="panel glass">
+    <div class="panel-head"><h2>Recent findings</h2><a href="{% url 'investigations-page' %}">Open cases →</a></div>
+    <div class="compact-list">
+      {% for finding in recent_findings %}
+        <div class="compact-row">
+          <span class="severity severity-{{ finding.severity }}">{{ finding.severity }}</span>
+          <div><strong>{{ finding.title }}</strong><small>{{ finding.transaction.transaction_id }}</small></div>
+          <span class="score-pill">{{ finding.confidence|floatformat:0 }}</span>
+        </div>
+      {% empty %}
+        <p class="muted">No findings yet. Run <code>python manage.py seed_demo</code> to populate synthetic signals.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="analytics-grid reveal">
+  <article class="panel glass">
+    <div class="panel-head"><h2>Risk trend</h2><span>Last 14 scored days</span></div>
+    {{ risk_trend|json_script:"risk-trend-data" }}
+    <canvas id="trendChart" height="220"></canvas>
+  </article>
+  <article class="panel glass">
+    <div class="panel-head"><h2>Detection health</h2><span>Average risk {{ average_risk }}</span></div>
+    <div class="health-list">
+      <div class="health-row"><span>Latest run</span><strong>{{ latest_run.get_status_display|default:"Not run" }}</strong></div>
+      <div class="health-row"><span>Transactions analyzed</span><strong>{{ latest_run.transactions_analyzed|default:0 }}</strong></div>
+      <div class="health-row"><span>Run duration</span><strong>{{ latest_run.duration_ms|default:0 }} ms</strong></div>
+      <div class="health-row"><span>Analyst action</span><button class="primary-button" id="run-detection" type="button">Run detection</button></div>
+      <div class="run-status" id="run-status" aria-live="polite"></div>
+    </div>
+  </article>
+</section>
+
+<section class="panel glass reveal">
+  <div class="panel-head"><h2>Next actions</h2><span>Operational guidance</span></div>
+  <div class="action-grid">
+    <a class="action-card" href="/api/schema/"><strong>Inspect API</strong><span>Review available REST endpoints</span></a>
+    <a class="action-card" href="{% url 'network-page' %}"><strong>Explore network</strong><span>Inspect connected counterparties</span></a>
+    <a class="action-card" href="{% url 'reports-page' %}"><strong>Generate report</strong><span>Export review-ready evidence</span></a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · FraudLens{% endblock %}
+{% block content %}
+{% include "partials/report_metrics.html" %}
+<section class="page-heading reveal">
+  <div>
+    <span class="eyebrow">Evidence & evaluation</span>
+    <h1>{{ title }}</h1>
+    <p class="muted">{{ count }} generated artifacts available for download.</p>
+  </div>
+  <a class="primary-button" href="/api/reports/generate/">Generate via API</a>
+</section>
+<section class="panel glass quick-action reveal report-builder">
+  <div>
+    <span class="eyebrow">Report builder</span>
+    <h2>Create an evidence artifact</h2>
+    <p class="muted">Choose a scope and format. Generated files appear in the table below.</p>
+  </div>
+  {% if user.is_admin_role or user.is_analyst_role %}
+    <form id="report-generate-form" class="inline-action report-form">
+      <input id="report-title" type="text" maxlength="180" placeholder="Report title" aria-label="Report title">
+      <select id="report-kind" aria-label="Report kind">
+        {% for value, label in report_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <select id="report-format" aria-label="Report format">
+        {% for value, label in report_formats %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+      <input id="report-days" type="number" min="1" max="365" value="30" aria-label="Lookback days">
+      <button class="primary-button" type="submit">Generate report</button>
+      <span id="report-status" class="action-status" aria-live="polite"></span>
+    </form>
+  {% else %}
+    <span class="muted">Read-only access</span>
+  {% endif %}
+</section>
+<section class="panel glass reveal">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Report</th><th>Kind</th><th>Format</th><th>Created by</th><th>Generated</th><th>Download</th></tr></thead>
+      <tbody>
+        {% for report in reports %}
+          <tr>
+            <td><strong>{{ report.title }}</strong><small>{{ report.file_name }}</small></td>
+            <td>{{ report.kind }}</td>
+            <td>{{ report.file_format|upper }}</td>
+            <td>{{ report.created_by.username|default:"System" }}</td>
+            <td>{{ report.created_at|date:"M d, Y H:i" }}</td>
+            <td><a class="ghost-button" href="/api/reports/download/{{ report.id }}/">Download</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="empty-state">No reports generated yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

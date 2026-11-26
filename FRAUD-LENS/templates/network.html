@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }} · FraudLens{% endblock %}
+{% block scripts %}<script src="{% static 'js/network.js' %}" defer></script>{% endblock %}
+{% block content %}
+{{ graph|json_script:"graph-data" }}
+<section class="page-heading reveal">
+  <div>
+    <span class="eyebrow">Network intelligence</span>
+    <h1>{{ title }}</h1>
+    <p class="muted">Animated 3D relationship view with masked account and counterparty labels.</p>
+  </div>
+  <div class="network-stats">
+    <span>{{ stats.node_count|default:0 }} nodes</span>
+    <span>{{ stats.edge_count|default:0 }} links</span>
+    <span>{{ stats.transaction_count|default:0 }} events</span>
+  </div>
+</section>
+<section class="network-layout reveal">
+  <article class="panel glass network-stage">
+    <div id="network-scene" class="network-scene" aria-label="3D transaction network"></div>
+    <div class="network-legend">
+      <span><i class="dot dot-account"></i>Account</span>
+      <span><i class="dot dot-counterparty"></i>Counterparty</span>
+      <span><i class="dot dot-cluster"></i>Cluster</span>
+    </div>
+  </article>
+  <aside class="panel glass network-side">
+    <div class="panel-head"><h2>Node signals</h2><span>Last 30 days</span></div>
+    <div class="compact-list">
+      {% for node in graph.nodes %}
+        <div class="compact-row">
+          <span class="dot dot-{{ node.kind }}"></span>
+          <div><strong>{{ node.label }}</strong><small>{{ node.transactions }} transactions</small></div>
+          <span class="score-pill">{{ node.risk }}</span>
+        </div>
+      {% empty %}
+        <p class="muted">No graph data available. Seed the synthetic demo data to generate a network.</p>
+      {% endfor %}
+    </div>
+  </aside>
+</section>
+{% endblock %}

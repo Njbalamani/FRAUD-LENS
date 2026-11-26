@@ -1,0 +1,14 @@
+﻿__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+staticfiles/
+datasets/models/
+*.joblib
+.venv/
+venv/
+.celery.pid
+.coverage
+htmlcov/
+.pytest_cache/
+.DS_Store
